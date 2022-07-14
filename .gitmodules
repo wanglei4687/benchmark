@@ -1,0 +1,3 @@
+[submodule "fsyncperf"]
+	path = fsyncperf
+	url = https://github.com/wanglei4687/fsyncperf
