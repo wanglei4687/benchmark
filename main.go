@@ -12,13 +12,14 @@ import (
 )
 
 type Config struct {
+	keyName        string
 	Region         string
 	AZ             string
 	Instance       string
 	Ami            string
 	Vol            []Volume
 	Capacitystatus string
-	Instancesku    string
+	Operation      string
 }
 
 type Volume struct {
@@ -63,9 +64,10 @@ func main() {
 					Field: "tenancy",
 					Value: "Shared",
 				},
+				// https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/billing-info-fields.html
 				pricing.GetProductFilter{
-					Field: "instancesku",
-					Value: bConfig.Instancesku,
+					Field: "operation",
+					Value: bConfig.Operation,
 				},
 			},
 		}, nil)
@@ -113,6 +115,12 @@ func main() {
 					Protocol:   pulumi.String("tcp"),
 					FromPort:   pulumi.Int(80),
 					ToPort:     pulumi.Int(80),
+					CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
+				},
+				ec2.SecurityGroupIngressArgs{
+					Protocol:   pulumi.String("tcp"),
+					FromPort:   pulumi.Int(22),
+					ToPort:     pulumi.Int(22),
 					CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
 				},
 			},
@@ -203,13 +211,30 @@ func main() {
 			command += fmt.Sprintf("./fsyncpref --path %s > index.html \n", pathList[k])
 		}
 
-		userData := fmt.Sprintf("#!/bin/bash \n  wget https://github.com/wanglei4687/fsyncperf/blob/main/bin/fsyncpref \n chmod 755 fsyncpref  \n %s nohup python -m SimpleHTTPServer 80 &", command)
+		userData := fmt.Sprintf("#!/bin/bash \n  wget https://github.com/wanglei4687/fsyncperf/releases/download/0.0.1/fsyncpref  \n chmod 755 fsyncpref  \n %s nohup python -m SimpleHTTPServer 80 &", command)
+
+		kp, err := ec2.LookupKeyPair(ctx, &ec2.LookupKeyPairArgs{
+			KeyName: pulumi.StringRef(bConfig.keyName),
+			//			KeyPairId: pulumi.StringRef("key-07cb67ef39e85a1e1"),
+			Filters: []ec2.GetKeyPairFilter{
+				ec2.GetKeyPairFilter{
+					Name: "tag:org",
+					Values: []string{
+						"matrixorigin",
+					},
+				},
+			},
+		}, nil)
+		if err != nil {
+			return err
+		}
 
 		instance, err := ec2.NewInstance(ctx, "benchmark-ec2", &ec2.InstanceArgs{
 			Ami:              pulumi.String(bConfig.Ami),
 			AvailabilityZone: pulumi.String(bConfig.AZ),
 			InstanceType:     pulumi.String(bConfig.Instance),
 			UserData:         pulumi.String(userData),
+			KeyName:          pulumi.String(*kp.KeyName),
 			Tags: pulumi.StringMap{
 				"Name": pulumi.String("benchmark"),
 			},
