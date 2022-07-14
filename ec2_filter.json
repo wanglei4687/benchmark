@@ -1,0 +1,36 @@
+[
+  {
+    "Type": "TERM_MATCH",
+    "Field": "ServiceCode",
+    "Value": "AmazonEC2"
+},
+
+  {
+    "Type": "TERM_MATCH",
+    "Field": "regionCode",
+    "Value": "us-east-1"
+},
+    {
+    "Type": "TERM_MATCH",
+    "Field": "operatingSystem",
+    "Value": "linux"
+},
+    {
+    "Type": "TERM_MATCH",
+    "Field": "instanceType",
+    "Value": "t2.micro"
+},
+    {
+    "Type": "TERM_MATCH",
+    "Field": "capacitystatus",
+    "Value": "UnusedCapacityReservation"
+}, {
+    "Type": "TERM_MATCH",
+    "Field": "tenancy",
+    "Value": "Shared"
+},
+    {
+
+}
+
+]
