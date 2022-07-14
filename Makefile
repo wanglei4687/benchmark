@@ -23,6 +23,10 @@ config:
 	pulumi config set --path 'config.vol[0].devicename' /dev/sdc
 	pulumi config set --path 'config.vol[0].version'  'General Purpose'
 
+.PHONY: stack
+stack:
+	pulumi stack
+
 .PHONY: preview
 preview:
 	pulumi preview
@@ -41,7 +45,3 @@ down:
 .PHONY: show
 show:
 	pulumi stack output
-
-.PHONY: perf
-perf:
-	curl $(pulumi stack output publicIp)

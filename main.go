@@ -39,8 +39,6 @@ func main() {
 		cfg := config.New(ctx, "benchmark")
 		cfg.RequireObject("config", &bConfig)
 
-		fmt.Println(bConfig)
-
 		//  This data source is only available in a us-east-1 or ap-south-1 provider
 		instancePrice, err := pricing.GetProduct(ctx, &pricing.GetProductArgs{
 			ServiceCode: "AmazonEC2",
