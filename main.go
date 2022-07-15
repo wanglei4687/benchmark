@@ -25,11 +25,12 @@ type Config struct {
 type Volume struct {
 	Type string
 	// General Purpose or Provisioned IOPS
-	Version     string
-	Size        int
-	Iops        int
-	MultiAttach bool
-	Throughput  int
+	Version    string
+	File       string
+	VPath      string
+	Size       int
+	Iops       int
+	Throughput int
 	// DeviceName, https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/device_naming.html
 	DeviceName string
 }
@@ -74,6 +75,8 @@ func main() {
 		if err != nil {
 			return err
 		}
+
+		insT := fmt.Sprintf("%s:%s", bConfig.Region, bConfig.Instance)
 		ctx.Export("instancePrice", pulumi.String(instancePrice.Result))
 
 		var volPriceList []*pricing.GetProductResult
@@ -102,7 +105,7 @@ func main() {
 
 				volPriceList = append(volPriceList, vol)
 
-				voT := fmt.Sprintf("%s:%s: ", v.Version, v.Type)
+				voT := fmt.Sprintf("%s:%s:%s ", bConfig.Region, v.Version, v.Type)
 
 				ctx.Export(voT, pulumi.String(vol.Result))
 			}
@@ -144,6 +147,7 @@ func main() {
 		var args ebs.VolumeArgs
 		var deviceNameList []string
 		var pathList []string
+		var formatCommand string
 		for k, v := range bConfig.Vol {
 			switch v.Type {
 			case "gp2":
@@ -152,7 +156,15 @@ func main() {
 					Size:             pulumi.Int(v.Size),
 					Type:             pulumi.String(v.Type),
 				}
-				pathList = append(pathList, v.DeviceName)
+
+				deviceP := len(v.DeviceName)
+				vPath := v.VPath + v.DeviceName[deviceP-1:]
+				mountPath := "/benchmark" + v.DeviceName[deviceP-1:]
+
+				formatCommand += fmt.Sprintf("sudo mkfs -t %s %s \n", v.File, vPath)
+				formatCommand += fmt.Sprintf("sudo mkdir %s \n", mountPath)
+				formatCommand += fmt.Sprintf("sudo mount %s %s \n", vPath, mountPath)
+				pathList = append(pathList, mountPath)
 			case "gp3":
 				args = ebs.VolumeArgs{
 					AvailabilityZone: pulumi.String(bConfig.AZ),
@@ -165,7 +177,14 @@ func main() {
 					// The type of EBS volume. Can be `standard`, `gp2`, `gp3`, `io1`, `io2`, `sc1` or `st1` (Default: `gp2`).
 					Type: pulumi.String(v.Type),
 				}
-				pathList = append(pathList, v.DeviceName)
+				deviceP := len(v.DeviceName)
+				vPath := v.VPath + v.DeviceName[deviceP-1:]
+				mountPath := "/benchmark" + v.DeviceName[deviceP-1:]
+
+				formatCommand += fmt.Sprintf("sudo mkfs -t %s %s \n", v.File, vPath)
+				formatCommand += fmt.Sprintf("sudo mkdir %s \n", mountPath)
+				formatCommand += fmt.Sprintf("sudo mount %s %s \n", vPath, mountPath)
+				pathList = append(pathList, mountPath)
 			case "io1":
 				args = ebs.VolumeArgs{
 					AvailabilityZone: pulumi.String(bConfig.AZ),
@@ -173,9 +192,16 @@ func main() {
 					Iops:             pulumi.Int(v.Iops),
 					Type:             pulumi.String(v.Type),
 					// Specifies whether to enable Amazon EBS Multi-Attach. Multi-Attach is supported on `io1` and `io2` volumes.
-					MultiAttachEnabled: pulumi.Bool(v.MultiAttach),
+					MultiAttachEnabled: pulumi.Bool(false),
 				}
-				pathList = append(pathList, v.DeviceName)
+				deviceP := len(v.DeviceName)
+				vPath := v.VPath + v.DeviceName[deviceP-1:]
+				mountPath := "/benchmark" + v.DeviceName[deviceP-1:]
+
+				formatCommand += fmt.Sprintf("sudo mkfs -t %s %s \n", v.File, vPath)
+				formatCommand += fmt.Sprintf("sudo mkdir %s \n", mountPath)
+				formatCommand += fmt.Sprintf("sudo mount %s %s \n", vPath, mountPath)
+				pathList = append(pathList, mountPath)
 			case "io2":
 				args = ebs.VolumeArgs{
 					AvailabilityZone: pulumi.String(bConfig.AZ),
@@ -183,23 +209,44 @@ func main() {
 					Iops:             pulumi.Int(v.Iops),
 
 					Type:               pulumi.String(v.Type),
-					MultiAttachEnabled: pulumi.Bool(v.MultiAttach),
+					MultiAttachEnabled: pulumi.Bool(false),
 				}
-				pathList = append(pathList, v.DeviceName)
+				deviceP := len(v.DeviceName)
+				vPath := v.VPath + v.DeviceName[deviceP-1:]
+				mountPath := "/benchmark" + v.DeviceName[deviceP-1:]
+
+				formatCommand += fmt.Sprintf("sudo mkfs -t %s %s \n", v.File, vPath)
+				formatCommand += fmt.Sprintf("sudo mkdir %s \n", mountPath)
+				formatCommand += fmt.Sprintf("sudo mount %s %s \n", vPath, mountPath)
+				pathList = append(pathList, mountPath)
 			case "sc1":
 				args = ebs.VolumeArgs{
 					AvailabilityZone: pulumi.String(bConfig.AZ),
 					Size:             pulumi.Int(v.Size),
 					Type:             pulumi.String(v.Type),
 				}
-				pathList = append(pathList, v.DeviceName)
+				deviceP := len(v.DeviceName)
+				vPath := v.VPath + v.DeviceName[deviceP-1:]
+				mountPath := "/benchmark" + v.DeviceName[deviceP-1:]
+
+				formatCommand += fmt.Sprintf("sudo mkfs -t %s %s \n", v.File, vPath)
+				formatCommand += fmt.Sprintf("sudo mkdir %s \n", mountPath)
+				formatCommand += fmt.Sprintf("sudo mount %s %s \n", vPath, mountPath)
+				pathList = append(pathList, mountPath)
 			case "st1":
 				args = ebs.VolumeArgs{
 					AvailabilityZone: pulumi.String(bConfig.AZ),
 					Size:             pulumi.Int(v.Size),
 					Type:             pulumi.String(v.Type),
 				}
-				pathList = append(pathList, v.DeviceName)
+				deviceP := len(v.DeviceName)
+				vPath := v.VPath + v.DeviceName[deviceP-1:]
+				mountPath := "/benchmark" + v.DeviceName[deviceP-1:]
+
+				formatCommand += fmt.Sprintf("sudo mkfs -t %s %s \n", v.File, vPath)
+				formatCommand += fmt.Sprintf("sudo mkdir %s \n", mountPath)
+				formatCommand += fmt.Sprintf("sudo mount %s %s \n", vPath, mountPath)
+				pathList = append(pathList, mountPath)
 			case "local":
 				pathList = append(pathList, v.DeviceName)
 			default:
@@ -215,14 +262,17 @@ func main() {
 
 			volList = append(volList, vol)
 			deviceNameList = append(deviceNameList, v.DeviceName)
+
 		}
 
 		var command string
 		for k := range pathList {
-			command += fmt.Sprintf("./fsyncpref --path %s > index.html \n", pathList[k])
+			command += fmt.Sprintf("sudo ./fsyncpref --path %s >> index.html \n", pathList[k])
 		}
 
-		userData := fmt.Sprintf("#!/bin/bash \n  wget https://github.com/wanglei4687/fsyncperf/releases/download/0.0.1/fsyncpref  \n chmod 755 fsyncpref  \n %s nohup python -m SimpleHTTPServer 80 &", command)
+		userData := fmt.Sprintf("#!/bin/bash \n %s wget https://github.com/wanglei4687/fsyncperf/releases/download/0.0.1/fsyncpref  \n chmod 755 fsyncpref  \n %s echo \"done\" >> index.html  \n nohup python -m SimpleHTTPServer 80 &", formatCommand, command)
+
+		fmt.Println(userData)
 
 		kp, err := ec2.LookupKeyPair(ctx, &ec2.LookupKeyPairArgs{
 			KeyName: pulumi.StringRef(bConfig.keyName),
@@ -256,9 +306,11 @@ func main() {
 
 		for k, v := range volList {
 			_, err = ec2.NewVolumeAttachment(ctx, "benchmark-volumeAttach-"+strconv.Itoa(k), &ec2.VolumeAttachmentArgs{
-				DeviceName: pulumi.String(deviceNameList[k]),
-				VolumeId:   v.ID(),
-				InstanceId: instance.ID(),
+				DeviceName:  pulumi.String(deviceNameList[k]),
+				VolumeId:    v.ID(),
+				InstanceId:  instance.ID(),
+				ForceDetach: pulumi.Bool(true),
+				SkipDestroy: pulumi.Bool(true,
 			}, pulumi.DependsOn([]pulumi.Resource{instance, v}))
 			if err != nil {
 				return err

@@ -18,13 +18,19 @@ config:
 	pulumi config set --path 'config.ami' ami-0cff7528ff583bf9a
 	pulumi config set --path 'config.capacitystatus' UnusedCapacityReservation
 	pulumi config set --path 'config.operation'  RunInstances
-	pulumi config set --path 'config.vol[0].multiattach' true
 	pulumi config set --path 'config.vol[0].type' gp2
 	pulumi config set --path 'config.vol[0].size' 100
 	pulumi config set --path 'config.vol[0].devicename' /dev/sdc
 	pulumi config set --path 'config.vol[0].version'  'General Purpose'
-#	pulumi config set --path 'config.vol[1].type' local
-#	pulumi config set --path 'config.vol[1].devicename' /dev/xvda
+	pulumi config set --path 'config.vol[0].vpath' /dev/xvd
+	pulumi config set --path 'config.vol[0].file' xfs
+#	pulumi config set --path 'config.vol[1].type' gp3
+#	pulumi config set --path 'config.vol[1].devicename' /dev/sdf
+#	pulumi config set --path 'config.vol[1].vpath' /dev/xvd
+#	pulumi config set --path 'config.vol[1].version' 'General Purpose'
+#	pulumi config set --path 'config.vol[1].file' xfs
+#	pulumi config set --path 'config.vol[1].size' 100
+#	pulumi config set --path 'config.vol[1].throughput' 300
 
 .PHONY: stack
 stack:
@@ -52,3 +58,8 @@ show:
 .PHONY: rm
 rm:
 	pulumi stack rm
+
+.PHONY: res
+res:
+	pulumi stack output > result.txt
+	curl $(pulumi stack output publicIp) > result.txt
