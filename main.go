@@ -14,6 +14,7 @@ import (
 type Config struct {
 	keyName        string
 	Region         string
+	BURL           string
 	AZ             string
 	Instance       string
 	Ami            string
@@ -77,7 +78,7 @@ func main() {
 		}
 
 		insT := fmt.Sprintf("%s:%s", bConfig.Region, bConfig.Instance)
-		ctx.Export("instancePrice", pulumi.String(instancePrice.Result))
+		ctx.Export(insT, pulumi.String(instancePrice.Result))
 
 		var volPriceList []*pricing.GetProductResult
 		for _, v := range bConfig.Vol {
@@ -270,9 +271,10 @@ func main() {
 			command += fmt.Sprintf("sudo ./fsyncpref --path %s >> index.html \n", pathList[k])
 		}
 
-		userData := fmt.Sprintf("#!/bin/bash \n %s wget https://github.com/wanglei4687/fsyncperf/releases/download/0.0.1/fsyncpref  \n chmod 755 fsyncpref  \n %s echo \"done\" >> index.html  \n nohup python -m SimpleHTTPServer 80 &", formatCommand, command)
+		userData := fmt.Sprintf("#!/bin/bash \n %s wget %s  \n chmod 755 fsyncpref  \n %s echo \"done\" >> index.html  \n nohup python -m SimpleHTTPServer 80 &",
+			formatCommand, bConfig.BURL, command)
 
-		fmt.Println(userData)
+		ctx.Export("userData", pulumi.String(userData))
 
 		kp, err := ec2.LookupKeyPair(ctx, &ec2.LookupKeyPairArgs{
 			KeyName: pulumi.StringRef(bConfig.keyName),
@@ -310,7 +312,7 @@ func main() {
 				VolumeId:    v.ID(),
 				InstanceId:  instance.ID(),
 				ForceDetach: pulumi.Bool(true),
-				SkipDestroy: pulumi.Bool(true,
+				SkipDestroy: pulumi.Bool(true),
 			}, pulumi.DependsOn([]pulumi.Resource{instance, v}))
 			if err != nil {
 				return err

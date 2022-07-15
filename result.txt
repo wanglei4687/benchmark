@@ -1,0 +1,47 @@
+Current stack outputs (6):
+    OUTPUT                          VALUE
+    publicHostName                  ec2-35-175-254-52.compute-1.amazonaws.com
+    publicIp                        35.175.254.52
+    security group                  benchmark-sg
+    us-east-1:General Purpose:gp2   {"product":{"attributes":{"location":"US East (N. Virginia)","locationType":"AWS Region","maxIopsBurstPerformance":"3000 for volumes \u003c= 1 TiB","maxIopsvolume":"16000","maxThroughputvolume":"250 MiB/s","maxVolumeSize":"16 TiB","operation":"","regionCode":"us-east-1","servicecode":"AmazonEC2","servicename":"Amazon Elastic Compute Cloud","storageMedia":"SSD-backed","usagetype":"EBS:VolumeUsage.gp2","volumeApiName":"gp2","volumeType":"General Purpose"},"productFamily":"Storage","sku":"HY3BZPP2B6K8MSJF"},"publicationDate":"2022-07-07T23:42:52Z","serviceCode":"AmazonEC2","terms":{"OnDemand":{"HY3BZPP2B6K8MSJF.JRTCKXETXF":{"effectiveDate":"2022-07-01T00:00:00Z","offerTermCode":"JRTCKXETXF","priceDimensions":{"HY3BZPP2B6K8MSJF.JRTCKXETXF.6YS6EN2CT7":{"appliesTo":[],"beginRange":"0","description":"$0.10 per GB-month of General Purpose SSD (gp2) provisioned storage - US East (Northern Virginia)","endRange":"Inf","pricePerUnit":{"USD":"0.1000000000"},"rateCode":"HY3BZPP2B6K8MSJF.JRTCKXETXF.6YS6EN2CT7","unit":"GB-Mo"}},"sku":"HY3BZPP2B6K8MSJF","termAttributes":{}}}},"version":"20220707234252"}
+    us-east-1:t2.2xlarge            {"product":{"attributes":{"availabilityzone":"NA","capacitystatus":"UnusedCapacityReservation","classicnetworkingsupport":"false","clockSpeed":"Up to 3.3 GHz","currentGeneration":"Yes","ecu":"Variable","enhancedNetworkingSupported":"No","instanceFamily":"General purpose","instanceType":"t2.2xlarge","instancesku":"2S47E3PRB8XVH9QV","intelAvx2Available":"No","intelAvxAvailable":"Yes","intelTurboAvailable":"Yes","licenseModel":"No License required","location":"US East (N. Virginia)","locationType":"AWS Region","marketoption":"OnDemand","memory":"32 GiB","networkPerformance":"Moderate","normalizationSizeFactor":"16","operatingSystem":"Linux","operation":"RunInstances","physicalProcessor":"Intel Xeon Family","preInstalledSw":"NA","processorArchitecture":"64-bit","processorFeatures":"Intel AVX; Intel Turbo","regionCode":"us-east-1","servicecode":"AmazonEC2","servicename":"Amazon Elastic Compute Cloud","storage":"EBS only","tenancy":"Shared","usagetype":"UnusedBox:t2.2xlarge","vcpu":"8","vpcnetworkingsupport":"true"},"productFamily":"Compute Instance","sku":"ZWU9BXDUKN6SQK4X"},"publicationDate":"2022-07-07T23:42:52Z","serviceCode":"AmazonEC2","terms":{"OnDemand":{"ZWU9BXDUKN6SQK4X.JRTCKXETXF":{"effectiveDate":"2022-07-01T00:00:00Z","offerTermCode":"JRTCKXETXF","priceDimensions":{"ZWU9BXDUKN6SQK4X.JRTCKXETXF.6YS6EN2CT7":{"appliesTo":[],"beginRange":"0","description":"$0.3712 per Unused Reservation Linux t2.2xlarge Instance Hour","endRange":"Inf","pricePerUnit":{"USD":"0.3712000000"},"rateCode":"ZWU9BXDUKN6SQK4X.JRTCKXETXF.6YS6EN2CT7","unit":"Hrs"}},"sku":"ZWU9BXDUKN6SQK4X","termAttributes":{}}}},"version":"20220707234252"}
+    userData                        #!/bin/bash 
+ sudo mkfs -t xfs /dev/xvdc 
+sudo mkdir /benchmarkc 
+sudo mount /dev/xvdc /benchmarkc 
+ wget https://github.com/wanglei4687/fsyncperf/releases/download/0.0.1/fsyncpref  
+ chmod 755 fsyncpref  
+ sudo ./fsyncpref --path /benchmarkc >> index.html 
+ echo "done" >> index.html  
+ nohup python -m SimpleHTTPServer 80 &
+---------------------------------------------------
+
+ DeviceName: /benchmarkc 
+concurrency: 1
+workerID: 0, latency: 1878 microsecond per op, bandwidth: 33MBytes/sec
+aggregated bandwidth: 33MBytes/sec
+
+concurrency: 2
+workerID: 1, latency: 2016 microsecond per op, bandwidth: 31MBytes/sec
+workerID: 0, latency: 2016 microsecond per op, bandwidth: 30MBytes/sec
+aggregated bandwidth: 61MBytes/sec
+
+concurrency: 4
+workerID: 0, latency: 2098 microsecond per op, bandwidth: 29MBytes/sec
+workerID: 3, latency: 2110 microsecond per op, bandwidth: 29MBytes/sec
+workerID: 1, latency: 2120 microsecond per op, bandwidth: 29MBytes/sec
+workerID: 2, latency: 2153 microsecond per op, bandwidth: 29MBytes/sec
+aggregated bandwidth: 116MBytes/sec
+
+concurrency: 8
+workerID: 0, latency: 4083 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 7, latency: 4083 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 4, latency: 4114 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 2, latency: 4115 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 1, latency: 4115 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 3, latency: 4120 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 6, latency: 4122 microsecond per op, bandwidth: 15MBytes/sec
+workerID: 5, latency: 4125 microsecond per op, bandwidth: 15MBytes/sec
+aggregated bandwidth: 120MBytes/sec
+
+done

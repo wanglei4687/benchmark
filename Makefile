@@ -15,6 +15,7 @@ config:
 	pulumi config set --path 'config.instance' t2.2xlarge
 	pulumi config set --path 'config.region' us-east-1
 	pulumi config set --path 'config.keyname' lei
+	pulumi config set --path 'config.burl' 'https://github.com/wanglei4687/fsyncperf/releases/download/0.0.1/fsyncpref'
 	pulumi config set --path 'config.ami' ami-0cff7528ff583bf9a
 	pulumi config set --path 'config.capacitystatus' UnusedCapacityReservation
 	pulumi config set --path 'config.operation'  RunInstances
@@ -59,7 +60,14 @@ show:
 rm:
 	pulumi stack rm
 
+.PHONY: ip
+ip:
+	pulumi stack output publicIp
+
+.PHONY: check
+check:
+	./check.sh $(PULUMI_CONFIG_PASSPHRASE)
+
 .PHONY: res
 res:
-	pulumi stack output > result.txt
-	curl $(pulumi stack output publicIp) > result.txt
+	./res.sh $(PULUMI_CONFIG_PASSPHRASE)
