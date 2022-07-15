@@ -124,10 +124,21 @@ func main() {
 					CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
 				},
 			},
+			Egress: ec2.SecurityGroupEgressArray{
+				ec2.SecurityGroupEgressArgs{
+					Protocol:   pulumi.String("-1"),
+					FromPort:   pulumi.Int(0),
+					ToPort:     pulumi.Int(0),
+					CidrBlocks: pulumi.StringArray{pulumi.String("0.0.0.0/0")},
+				},
+			},
+			Name: pulumi.String("benchmark-sg"),
 		}, nil)
 		if err != nil {
 			return err
 		}
+
+		ctx.Export("security group", sg.Name)
 
 		var volList []*ebs.Volume
 		var args ebs.VolumeArgs
@@ -215,7 +226,6 @@ func main() {
 
 		kp, err := ec2.LookupKeyPair(ctx, &ec2.LookupKeyPairArgs{
 			KeyName: pulumi.StringRef(bConfig.keyName),
-			//			KeyPairId: pulumi.StringRef("key-07cb67ef39e85a1e1"),
 			Filters: []ec2.GetKeyPairFilter{
 				ec2.GetKeyPairFilter{
 					Name: "tag:org",
@@ -230,11 +240,12 @@ func main() {
 		}
 
 		instance, err := ec2.NewInstance(ctx, "benchmark-ec2", &ec2.InstanceArgs{
-			Ami:              pulumi.String(bConfig.Ami),
-			AvailabilityZone: pulumi.String(bConfig.AZ),
-			InstanceType:     pulumi.String(bConfig.Instance),
-			UserData:         pulumi.String(userData),
-			KeyName:          pulumi.String(*kp.KeyName),
+			VpcSecurityGroupIds: pulumi.StringArray{sg.ID()},
+			Ami:                 pulumi.String(bConfig.Ami),
+			AvailabilityZone:    pulumi.String(bConfig.AZ),
+			InstanceType:        pulumi.String(bConfig.Instance),
+			UserData:            pulumi.String(userData),
+			KeyName:             pulumi.String(*kp.KeyName),
 			Tags: pulumi.StringMap{
 				"Name": pulumi.String("benchmark"),
 			},
